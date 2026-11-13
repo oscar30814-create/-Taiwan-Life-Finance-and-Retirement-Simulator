@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>台灣人生財務與退休模擬器</title>
+<style>
+:root{--bg:#f6f7f9;--cd:#fff;--tx:#1b2430;--mu:#667085;--ac:#2563eb;--bd:#e3e6ec;--ok:#16a34a;--bad:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1319;--cd:#171d26;--tx:#e8ecf2;--mu:#9aa5b5;--ac:#6ea0ff;--bd:#2a3340;--ok:#4ade80;--bad:#f87171}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1319;--cd:#171d26;--tx:#e8ecf2;--mu:#9aa5b5;--ac:#6ea0ff;--bd:#2a3340;--ok:#4ade80;--bad:#f87171}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.w{max-width:1100px;margin:auto;padding:16px;display:grid;gap:16px}
+@media(min-width:900px){.w{grid-template-columns:420px 1fr}.res{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}}
+h1{font-size:20px;margin:0 0 4px}.mu{color:var(--mu);font-size:12px}
+details,.cd{background:var(--cd);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px;padding:0 14px}
+.cd{padding:14px}summary{cursor:pointer;padding:12px 0;font-weight:600}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;padding-bottom:12px}
+label{font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:2px}
+input,select{font:inherit;padding:6px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);min-width:0}
+.f{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 12px}
+.k{flex-direction:row;align-items:center;gap:4px;font-size:13px;color:var(--tx)}
+.big{font-size:30px;font-weight:700}.bd{display:inline-block;padding:4px 14px;border-radius:99px;background:var(--ac);color:#fff;font-weight:700;font-size:18px}
+.r{display:grid;grid-template-columns:78px 1fr 110px;gap:8px;align-items:center;font-size:13px;margin:4px 0}
+.b{height:10px;border-radius:5px;background:var(--ac)}
+svg{width:100%;height:auto}svg text{fill:var(--mu);font-size:11px}li{margin:4px 0}.ok{color:var(--ok)}.bad{color:var(--bad)}
+</style></head><body><div class="w"><div><h1>🇹🇼 台灣人生財務與退休模擬器</h1><div class="mu">調整左側條件，右側即時試算（金額皆為估計值，可自行修改）。</div><br><div id="form"></div></div><div class="res" id="res"></div></div>
+<script>
+const P2=s=>Object.fromEntries(s.split(",").map(x=>x.split(":")));
+const IND=P2("半導體業:258,電腦及週邊設備業:160.4,其他電子業:154.1,金融保險業:155.7,塑膠工業:112.8,航運業:145,鋼鐵工業:102.6,水泥工業:94,建材營造:111,資訊服務業:118.6,油電燃氣業:109.6,金融業:139.3,通信網路業:111.2,電子通路業:128.4,文化創意業:148.4,其他:92.1,化學工業:94,造紙工業:89.6,光電業:105.2,電子零組件業:106.5,食品工業:86.7,農業科技:76.1,生技醫療業:95,汽車工業:88.2,橡膠工業:79.6,貿易百貨:72.5,電器電纜:140.1,電機機械:90.7,紡織纖維:77.9,玻璃陶瓷:67.2,觀光餐旅:54.3,運動休閒:92.6,居家生活:80.6,數位雲端:105.1,綠能環保:105.3");
+const REG=P2("台北市:95/22000,新北市:52/15000,桃園市:33/11000,新竹市:45/12000,新竹縣:42/11000,基隆市:28/9000,宜蘭縣:30/8000,苗栗縣:22/6500,臺中市:40/11000,彰化縣:22/6500,南投縣:17/5500,雲林縣:17/5500,嘉義市:25/7000,嘉義縣:17/5500,臺南市:28/8000,高雄市:30/9000,屏東縣:18/6000,臺東縣:18/5500,花蓮縣:22/6000,澎湖縣:20/6000,金門縣:25/6000,連江縣:20/5500");
+const CAR=Object.fromEntries([["無",0,0],["國產 Toyota Vios",61,5],["國產 Toyota Corolla Altis",82,5.5],["國產 Toyota Corolla Cross",89,6],["國產 Honda FIT/HR-V",83,5.5],["國產 Honda CR-V",114,7],["國產 Ford Focus/Kuga",95,6.5],["國產 Ford Territory",102,6.5],["國產 Hyundai Tucson L",117,7],["國產 Nissan Kicks/Sentra",80,5.5],["國產 MG ZS/HS",98,6],["國產 Luxgen n7 純電",117,4.5],["日系 Toyota RAV4",127,7],["日系 Toyota Camry",112,7],["日系 Mazda3",94,6.5],["日系 Mazda CX-5",117,7],["日系 Suzuki Swift",73,5],["日系 Subaru Forester",126,7.5],["日系 Lexus NX",171,9],["日系 Lexus RX",300,12],["歐系 VW Golf/Tiguan",120,8],["歐系 Škoda Octavia",100,7.5],["歐系 Volvo XC60",200,10],["歐系 Mercedes A/C-Class",200,11],["歐系 BMW 3系列",220,11],["歐系 Audi A4/Q5",200,10.5],["跑車 Mazda MX-5",145,10],["跑車 GR86/BRZ",172,10],["跑車 Ford Mustang",200,13],["跑車 Toyota GR Supra",267,15],["跑車 Porsche 911",550,25],["超跑 Ferrari/Lamborghini",1700,60],["Tesla Model 3",200,4.5],["Tesla Model Y",220,4.5],["Tesla Model S",332,6],["Tesla Model X",360,6.5]].map(([n,a,b])=>[n=="無"?n:n+"（"+a+"萬）",[a,b]])),MOTO={無:[0,0],三陽:[8,1],光陽:[8.5,1],Yamaha:[10,1.2]},PET={無:0,貓:3.6,狗:6,魚:1.2};
+const TRIP={日本:6.5,韓國:5,大陸:4.5,香港:4.5,越南:3.5,泰國:4.5,美國:15,歐洲:18,澳門:3.5,新加坡:7,馬來西亞:4.5},SUB={Netflix:390,"Disney+":270,音樂軟體:149,"YouTube Premium":189,"ChatGPT Go":270,"ChatGPT Plus":690,"ChatGPT Pro":3300,"Claude Pro":650,"Claude Max 5x":3200,"Claude Max 20x":6400,"Google AI Plus":165,"Google AI Pro":650,"Google AI Ultra":3300,"Perplexity Pro":660,"Perplexity Max":6400,"Copilot Pro":690};
+const $=id=>document.getElementById(id),O=o=>Object.keys(o);
+const fld=([id,l,v,o])=>o?`<label>${l}<select id="${id}">${o.map(x=>`<option${x==v?" selected":""}>${x}</option>`).join("")}</select></label>`:`<label>${l}<input id="${id}" type="number" step="any" value="${v}"></label>`;
+const cb=(c,o,d)=>`<div class="f">${O(o).map(k=>`<label class="k"><input type="checkbox" class="${c}" value="${k}"${d.includes(k)?" checked":""}>${k}</label>`).join("")}</div>`;
+const S=[["💼 職業與收入",[["ind","公司性質（平均年薪見下）","半導體業",O(IND)],["sal","月薪（元）",0],["bonus","年終分紅（月數）",2],["raise","年調薪 %",3],["tax","稅與勞健保 %",10],["age0","起始年齡",25],["retire","退休年齡",65],["death","預期壽命",85],["goal","退休存款目標（萬）",1500],["pension","退休月領年金（元）",20000]]],
+["🍜 食與衣",[["m1","早餐/餐",80],["m2","午餐/餐",110],["m3","晚餐/餐",150],["c1","每季衣褲（元）",2500],["c2","過節新衣/年",3000],["c3","鞋＋眼鏡/年",4000]]],
+["🏠 住（含水電瓦斯）",[["hmode","居住方式","租屋",["租屋","買房","與父母同住"]],["reg","縣市","台北市",O(REG)],["rent","月租（元）",0],["pp","每坪房價（萬）",0],["ping","買房坪數",28],["buyAge","買房年齡",35],["rate","房貸利率 %",2.5],["hg","房價年漲 %",2],["home","同住家用/月",6000],["e1","夏季電費/月（6–9月）",1800],["e2","非夏季電費/月",900],["water","水費/月",300],["gas","瓦斯/月",400]]],
+["🚗 行",[["car","汽車","無",O(CAR)],["carAge","買車年齡",28],["moto","機車","三陽",O(MOTO)]]],
+["👶 家庭與寵物",[["kids","孩子數","0",["0","1","2"]],["style","養育方式","窮養",["窮養","富養"]],["kidAge","第一胎年齡",30],["pet","寵物","無",O(PET)]]],
+["🎮 娛樂、旅遊與菸酒檳榔",[["game","電玩/年",12000],["trips","每年出國次數",1],["cig","香菸（包/天）",0],["cigP","每包價格（元）",100],["alc","酒類/月（元）",0],["betel","檳榔/天（元）",0]],cb("d",TRIP,["日本","韓國"])],
+["📈 市場與習慣",[["infl","物價上漲 %/年",2],["fx","台幣升值 %/年（貶值填負）",0],["ret","ETF 預期報酬 %",6],["vol","報酬波動 %",15],["share","盈餘投入ETF %",60],["small","零碎小支出/月",3000],["cheap","貪小便宜多花/月",1500]],cb("sb",SUB,["Netflix","Disney+","音樂軟體"])]];
+$("form").innerHTML=S.map(([t,f,x],i)=>`<details${i<1?" open":""}><summary>${t}</summary><div class="g">${f.map(fld).join("")}${x||""}</div></details>`).join("");
+const g=id=>+$(id).value,s=id=>$(id).value,pc=id=>g(id)/100,ck=c=>[...document.querySelectorAll("."+c+":checked")].map(x=>x.value);
+function setInd(){$("sal").value=Math.round(IND[s("ind")]*1e4/(12+g("bonus"))/100)*100}
+function setReg(){const[a,b]=REG[s("reg")].split("/");$("pp").value=a;$("rent").value=b}
+function P(){const p={};["age0","retire","death","sal","bonus","goal","pension","m1","m2","m3","c1","c2","c3","rent","pp","ping","buyAge","home","e1","e2","water","gas","carAge","kids","kidAge","game","trips","small","cheap","cig","cigP","alc","betel"].forEach(k=>p[k]=g(k));["raise","tax","rate","hg","infl","fx","ret","vol","share"].forEach(k=>p[k]=pc(k));["hmode","car","moto","style","pet"].forEach(k=>p[k]=s(k));p.dest=ck("d");p.subs=ck("sb");return p}
+function sim(p,z){let cash=0,etf=0,hv=0,loan=0,pmt=0,left=0,own=0,retNW=0;
+const out=[{a:p.age0,real:0}],cat={食:0,衣:0,住房:0,水電瓦斯:0,交通:0,子女:0,寵物:0,娛樂旅遊:0,亂花錢:0,菸酒檳榔:0,醫療:0},st={gain:0,sur:0,wi:0,exp:0};
+const dest=p.dest.length?p.dest.reduce((a,k)=>a+TRIP[k],0)/p.dest.length:0,sub=p.subs.reduce((a,k)=>a+SUB[k],0);
+for(let a=p.age0;a<p.death;a++){const t=a-p.age0,inf=Math.pow(1+p.infl,t),w=a<p.retire,f=w?1:.75;
+const gr=etf*(p.ret+(z?p.vol*z():0)-.5*p.fx);etf+=gr;st.gain+=gr/inf;cash*=cash>0?1.01:1.05;hv*=1+p.hg;
+const inc=w?p.sal*(12+p.bonus)*Math.pow(1+p.raise,t)*(1-p.tax):p.pension*12*inf,e={};
+e.食=(p.m1+p.m2+p.m3)*360*inf*f;e.衣=(p.c1*4+p.c2+p.c3)*inf*f;
+let h=0;if(p.hmode=="租屋"||(p.hmode=="買房"&&a<p.buyAge))h=p.rent*12*inf;else if(p.hmode=="與父母同住")h=p.home*12*inf;
+else{if(!own){own=1;const pr=p.ping*p.pp*1e4*Math.pow(1+p.hg,t);hv=pr;cash-=pr*.2;loan=pr*.8;pmt=loan*p.rate/(1-Math.pow(1+p.rate,-30));left=30}
+if(left>0){h+=pmt;loan-=pmt-loan*p.rate;if(--left==0)loan=0}h+=hv*.003}
+e.住房=h;e.水電瓦斯=(4*p.e1+8*p.e2+12*(p.water+p.gas))*inf*f;
+let tr=0;const cr=CAR[p.car],mo=MOTO[p.moto];
+if(cr[0]&&a>=p.carAge&&a<75){tr+=cr[1]*1e4*inf;if((a-p.carAge)%10==0)tr+=cr[0]*1e4*inf}
+if(mo[0]&&a<70){tr+=mo[1]*1e4*inf;if(t%8==0)tr+=mo[0]*1e4*inf}e.交通=tr;
+let k=0;for(let i=0;i<p.kids;i++){const b=p.kidAge+i*3;if(a>=b&&a<=b+22)k+=(p.style=="富養"?48:18)*1e4*inf}e.子女=k;
+e.寵物=PET[p.pet]&&a>=p.age0+3&&a<p.age0+18?PET[p.pet]*1e4*inf:0;
+e.娛樂旅遊=p.game*inf*f+p.trips*dest*1e4*inf*Math.pow(1-p.fx,t)*(a<80?1:.5);
+e.亂花錢=(sub+p.small+p.cheap)*12*inf;e.菸酒檳榔=(p.cig*p.cigP*365+p.alc*12+p.betel*365)*inf;e.醫療=(w?15000:60000*(1+(a-p.retire)*.03))*inf;
+let E=0;for(const q in e){E+=e[q];cat[q]+=e[q]/inf}
+const sp=inc-E;st.exp+=E/inf;if(w){st.wi+=inc/inf;st.sur+=sp/inf}
+if(sp>=0){etf+=sp*p.share;cash+=sp*(1-p.share)}else{let n=-sp;const c=Math.max(cash,0),u=Math.min(c,n);cash-=u;n-=u;const v=Math.min(etf,n);etf-=v;n-=v;cash-=n}
+const nw=cash+etf+hv-loan;out.push({a:a+1,real:nw/Math.pow(1+p.infl,t+1),nom:nw});if(a+1==p.retire)retNW=nw/Math.pow(1+p.infl,t+1)}
+return{out,cat,st,fin:out[out.length-1],retNW,own,hv,loan,infD:Math.pow(1+p.infl,p.death-p.age0)}}
+const fm=v=>{const w=v/1e4;return Math.abs(w)>=1e4?(w/1e4).toFixed(2)+"億":Math.round(w).toLocaleString()+"萬"};
+const tier=w=>w<0?"欠債":w<2?"躺平族／老鼠人":w<10?"乞丐":w<30?"窮人":w<300?"普通人":w<3000?"小康":w<10000?"富有":"土豪";
+const lvl=w=>{const a=[300,1000,3000,5000,10000,1e5,3e5];let i=a.findIndex(x=>w<x);return(i<0?8:i+1)+"級"};
+function run(){const p=P();if(p.death-p.age0<2)return;const r=sim(p,null),n=p.death-p.age0+1,cols=Array.from({length:n},()=>[]);
+const z=()=>Math.sqrt(-2*Math.log(1-Math.random()))*Math.cos(6.2832*Math.random());
+for(let i=0;i<200;i++)sim(p,z).out.forEach((o,j)=>cols[j].push(o.real));
+const q=(c,x)=>{c.sort((a,b)=>a-b);return c[Math.floor(x*(c.length-1))]},lo=cols.map(c=>q(c,.1)),hi=cols.map(c=>q(c,.9));
+const fr=r.fin.real,fw=fr/1e4,goal=p.goal*1e4,ok=r.retNW>=goal;
+const W=640,H=250,L=52,B=22,T=10,ys=[...lo,...hi,...r.out.map(o=>o.real),0,goal],mn=Math.min(...ys),mx=Math.max(...ys);
+const X=i=>L+i/(n-1)*(W-L-10),Y=v=>T+(1-(v-mn)/((mx-mn)||1))*(H-T-B),pt=(v,i)=>X(i)+","+Y(v);
+const band=hi.map(pt).join(" ")+" "+lo.map((v,i)=>pt(v,i)).reverse().join(" "),rx=X(p.retire-p.age0);
+const ticks=[0,1,2,3].map(i=>mn+(mx-mn)*i/3);
+const chart=`<svg viewBox="0 0 ${W} ${H}"><polygon points="${band}" fill="var(--ac)" opacity=".15"/>${ticks.map(v=>`<line x1="${L}" x2="${W-10}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--bd)"/><text x="${L-4}" y="${Y(v)+4}" text-anchor="end">${fm(v)}</text>`).join("")}<line x1="${L}" x2="${W-10}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mu)"/><line x1="${L}" x2="${W-10}" y1="${Y(goal)}" y2="${Y(goal)}" stroke="var(--ok)" stroke-dasharray="4"/><text x="${W-12}" y="${Y(goal)-3}" text-anchor="end">退休目標</text>${rx<W&&rx>L?`<line x1="${rx}" x2="${rx}" y1="${T}" y2="${H-B}" stroke="var(--mu)" stroke-dasharray="3"/><text x="${rx+3}" y="${T+10}">退休</text>`:""}<polyline points="${r.out.map((o,i)=>pt(o.real,i)).join(" ")}" fill="none" stroke="var(--ac)" stroke-width="2.5"/>${[0,.5,1].map(x=>`<text x="${X(x*(n-1))}" y="${H-6}" text-anchor="middle">${Math.round(p.age0+x*(n-1))}歲</text>`).join("")}</svg>`;
+const c=r.cat,tot=r.st.exp,cs=Object.entries(c).sort((a,b)=>b[1]-a[1]),cm=cs[0][1],sr=r.st.sur/(r.st.wi||1),pcn=x=>Math.round(x*100)+"%";
+const RS=[[sr>=.3,"ok",`工作期儲蓄率 ${pcn(sr)}，存錢能力強`],[sr<.1,"bad",`工作期儲蓄率只有 ${pcn(sr)}，收入幾乎被生活吞掉`],
+[c.住房/tot>.3,"bad",`住房（租金/房貸）佔人生總支出 ${pcn(c.住房/tot)}，是最大壓力`],[r.own&&r.hv>0,"ok",`有房產，死後房屋價值約 ${fm(r.hv/r.infD)}（今日幣值）`],
+[r.st.gain>5e6,"ok",`投資複利累計賺了約 ${fm(r.st.gain)}（今日幣值）`],[p.share<.2,"bad","幾乎沒有把盈餘拿去投資，錯過複利"],
+[c.亂花錢>3e6,"bad",`貪小便宜、訂閱與零碎支出累計 ${fm(c.亂花錢)}；省下並投入 ETF 會差很多`],
+[c.菸酒檳榔>1e6,"bad",`菸酒檳榔累計 ${fm(c.菸酒檳榔)}，長期是一筆可觀的本金`],[c.子女/tot>.2,"bad",`養小孩佔總支出 ${pcn(c.子女/tot)}`],[c.交通/tot>.15,"bad",`交通（買車養車）佔總支出 ${pcn(c.交通/tot)}`],[c.娛樂旅遊/tot>.12,"bad",`娛樂與旅遊佔總支出 ${pcn(c.娛樂旅遊/tot)}`],
+[p.sal*12>=1.2e6,"ok","本業收入高於一般水準，現金流有餘裕"],[ok,"ok",`退休時資產 ${fm(r.retNW)} 達成目標`],[!ok,"bad",`退休時資產 ${fm(r.retNW)}，距目標還差 ${fm(goal-r.retNW)}`],[fr<0,"bad","晚年資產耗盡並負債"]].filter(x=>x[0]);
+$("res").innerHTML=`<div class="cd"><div class="mu">人死後剩下（今日幣值）</div><div class="big">${fm(fr)}</div><div class="mu">帳面 ${fm(r.fin.nom)}｜90%情境區間 ${fm(lo[n-1])} ~ ${fm(hi[n-1])}</div><br><span class="bd">${tier(fw)}</span> <span class="mu">財富階層 ${lvl(fw)}</span></div>
+<div class="cd"><b>${p.retire} 歲退休資產：${fm(r.retNW)}</b> <span class="${ok?"ok":"bad"}">${ok?"✔ 達標":"✘ 未達標"}</span><div class="mu">目標 ${fm(goal)}｜以 4% 法則每月可花約 ${Math.round(Math.max(r.retNW,0)*.04/12).toLocaleString()} 元（今日幣值）｜階層 ${lvl(r.retNW/1e4)}</div>${chart}<div class="mu">藍線＝基準情境；淡色帶＝200 次隨機報酬的 10%~90% 區間（皆為今日幣值）</div></div>
+<div class="cd"><b>人生總支出分布</b>（今日幣值，共 ${fm(tot)}）${cs.map(([k,v])=>`<div class="r"><span>${k}</span><div class="b" style="width:${Math.max(v/cm*100,1)}%"></div><span>${fm(v)}（${pcn(v/tot)}）</span></div>`).join("")}</div>
+<div class="cd"><b>${fr>=goal?"🎉 人生算成功":fr>=0?"😐 人生勉強過關":"💸 人生算失敗"}，原因：</b><ul>${RS.map(x=>`<li class="${x[1]}">${x[1]=="ok"?"＋":"－"} ${x[2]}</li>`).join("")}</ul><div class="mu">僅為粗略試算，未計入遺產稅、醫療重大支出等。房價/租金/各項單價為估計值，可自行修改。</div></div>`}
+let tm;document.addEventListener("input",e=>{const i=e.target.id;if(i=="ind"||i=="bonus")setInd();if(i=="reg")setReg();clearTimeout(tm);tm=setTimeout(run,150)});
+setInd();setReg();run();
+</script></body></html>
