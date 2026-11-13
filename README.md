@@ -1,5 +1,6 @@
 # -Taiwan-Life-Finance-and-Retirement-Simulator
 Enter your age, occupation and salary, investment amount and daily expenses to find out your lifetime savings.
+
 Input Section:
 
 35 industries (selection will automatically calculate monthly salary, can be manually modified), number of months for year-end bonuses, annual salary adjustment, taxes and labor/health insurance, retirement savings goals.
